@@ -1,12 +1,54 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { BG_URL } from "../utils/constant";
 import { Header } from "./Header";
+import { checkValidData } from "../utils/validate";
+import { auth } from "../utils/firebase.js";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword  } from "firebase/auth";
 
 export const Login = () => {
   const [isSignInForm, setIsSignInForm] = useState(true);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const email = useRef(null);
+  const password = useRef(null);
 
   const isSignInFormHandler = () => {
     setIsSignInForm(!isSignInForm);
+  };
+
+  const handleButtonClick = () => {
+    const message = checkValidData(email.current.value, password.current.value);
+    setErrorMessage(message);
+    if (message) return;
+
+    // Authenticate using firebase auth
+    // 1. fing form is signup or signin
+    if (!isSignInForm) {
+      createUserWithEmailAndPassword(
+        auth,
+        email.current.value,
+        password.current.value
+      )
+        .then((userCredential) => {
+          const user = userCredential.user;
+          console.log(user);
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          setErrorMessage(errorCode + "=>" + errorMessage);
+        });
+    } else {
+      signInWithEmailAndPassword(auth, email.current.value, password.current.value)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          console.log(user);
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          setErrorMessage(errorCode + "=>" + errorMessage);
+        });
+    }
   };
 
   return (
@@ -16,35 +58,52 @@ export const Login = () => {
         <img src={BG_URL} alt="Background_Image" />
       </div>
 
-      <form className="flex absolute w-4/12 mx-auto left-0 right-0 mt-20 shadow-lg bg-black rounded-lg opacity-80">
+      <form
+        onClick={(e) => e.preventDefault()}
+        className="flex absolute w-4/12 mx-auto left-0 right-0 mt-20 shadow-lg bg-black rounded-lg opacity-80"
+      >
         <div className="flex flex-col w-full items-center py-10 rounded-lg">
-          <h1 className="font-bold text-white text-2xl">{isSignInForm ? "Sign In" : "Sign Up"}</h1>
+          <h1 className="font-bold text-white text-2xl">
+            {isSignInForm ? "Sign In" : "Sign Up"}
+          </h1>
 
-          {!isSignInForm && (<input
-            className="m-5 p-4 border-[1px] border-slate-500 bg-black rounded-md w-9/12"
-            type="email"
-            placeholder="Full Name"
-          />)}
+          {!isSignInForm && (
+            <input
+              className="m-5 p-4 border-[1px] border-slate-500 bg-black rounded-md w-9/12 text-white"
+              type="email"
+              placeholder="Full Name"
+            />
+          )}
 
           <input
-            className="m-5 p-4 border-[1px] border-slate-500 bg-black rounded-md w-9/12"
+            ref={email}
+            className="m-5 p-4 border-[1px] border-slate-500 bg-black rounded-md w-9/12 text-white"
             type="email"
             placeholder="Email Address"
           />
 
           <input
-            className="m-5 p-4 border-[1px] border-slate-500 bg-black rounded-md w-9/12"
+            ref={password}
+            className="m-5 p-4 border-[1px] border-slate-500 bg-black rounded-md w-9/12 text-white"
             type="password"
             placeholder="Password"
           />
 
-          <button className="mt-10 p-2 bg-red-600 text-white rounded-md w-9/12">
+          <p className="text-red-600">{errorMessage}</p>
+
+          <button
+            className="mt-10 p-2 bg-red-600 text-white rounded-md w-9/12"
+            onClick={handleButtonClick}
+          >
             {isSignInForm ? "Sign In" : "Sign Up"}
           </button>
           <p className="text-white mt-5">
             {isSignInForm ? "New to Netflix?" : "Already Register?"}
-            <span className="font-bold cursor-pointer hover:underline" onClick={isSignInFormHandler}>
-            {isSignInForm ? "Sign In Now." : "Sign Up Now."}
+            <span
+              className="font-bold cursor-pointer hover:underline"
+              onClick={isSignInFormHandler}
+            >
+              {isSignInForm ? "Sign Up First." : "Sign In Now."}
             </span>
           </p>
         </div>
