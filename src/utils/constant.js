@@ -18,3 +18,5 @@ export const API_OPTIONS = {
 export const YOUTUBE_EMBED = "https://www.youtube.com/embed/";
 
 export const TMDB_MOVIE_BY_ID = "https://api.themoviedb.org/3/movie/";
+
+export const PHOTO_URL = "https://image.tmdb.org/t/p/w300/";
